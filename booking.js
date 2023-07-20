@@ -33,7 +33,7 @@ document.getElementById("bookingForm").addEventListener("submit", function (even
         .catch((err) => {
             console.log(err)
         })
-                // Display
+                
                     const bookingStatus = document.getElementById("bookingStatus");
                     bookingStatus.innerHTML = `
                         <h2>Latest Booking</h2>
