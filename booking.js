@@ -40,7 +40,7 @@
       })
       .catch((err) => {
         console.log(err);
-      });
+      })
   });
 
   // Function to display the user details on page load
