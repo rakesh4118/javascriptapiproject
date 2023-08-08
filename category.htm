@@ -161,7 +161,7 @@
       axios.get(crudurl + "/order")
         .then((response) => {
           response.data.forEach((item) => {
-            const categoryList = document.getElementById(`${item.category}List`)
+            const categoryList = document.getElementById(`${item.category}List`);
             if (categoryList) {
               categoryList.appendChild(createListItem(item._id, item.price, item.product));
             }
