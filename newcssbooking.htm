@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restuarant</title>
+
+  
+</head>
+
+<body>
+  <div class="container mt-5">
+    <form>
+      <div class="form-group">
+        <label for="NameInput">Selling Price:</label>
+        <input type="number" class="form-control" id="price" placeholder="price">
+      </div>
+      <div class="form-group">
+        <label for="EmailInput">Product Name:</label>
+        <input type="text" class="form-control" id="product" placeholder="item">
+      </div>
+      <div class="form-group">
+        <label for="category">Choose a category:</label>
+        <select name ="category" id ="category">
+          <option value ="electronic">Electronics</option>
+          <option value ="food">Food item</option>
+          <option value ="skin">Skin Care</option>
+          <option value ="cloth">Clothes</option>
+        </select>
+  
+         
+      </div>
+      <button type="button" id="submitbtn" class="btn btn-primary">Add to bill</button>
+    </form>
+
+
+  </div>
+
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.4/axios.min.js"></script>
+  
+  <script>
+    const crudurl = "https://crudcrud.com/api/f0caa884b04f443e9005e5496860352c";
+   let list = document.getElementById("category");
+
+    showData();
+
+    function createListItem(price, product,category) {
+      let li = document.createElement('li');
+   
+   
+      
+      let deletebtn = document.createElement('button');
+      deletebtn.innerHTML = 'Delete';
+      deletebtn.className = 'btn btn-danger Delete mr-2';
+
+
+      li.innerHTML = `${price} rupees - ${product} - ${category}`;
+      li.appendChild(deletebtn);
+  
+
+      return li;
+    }
+
+    function showData(){
+      axios.get(crudurl + "/order")
+        .then((response) => {
+            for (let i = 0; i < response.data.length; i++) {
+                list.appendChild(createListItem(response.data[i].price, response.data[i].product,response.data[i].category));
+            }
+        })
+        .catch((error) => console.log(error));
+    }
+  
+
+
+    
+
+    let btn = document.getElementById('submitbtn');
+    btn.addEventListener('click', (e) => {
+      let obj = {
+        price: '',
+        product: '',
+        category:'',
+      };
+      obj.price = document.getElementById('price').value;
+      obj.product = document.getElementById('product').value;
+      obj.category = document.getElementById('category').value;
+
+      axios.post(crudurl + "/order",obj)
+      .then((response) => {
+        let remaninglist = document.getElementById('category');
+        remaninglist.appendChild(createListItem(response.data.price,response.data.product,response.data.category));
+      })
+      .catch((error) => console.log(error));
+    });
+      
+
+      
+
+
+      
+
+  </script>
+</body>
+
+</html>

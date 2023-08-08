@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUD App with Bootstrap</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+  
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+  
+    form {
+      margin-bottom: 20px;
+    }
+  
+    #submitbtn {
+      margin-top: 10px;
+    }
+  
+    ul#items {
+      list-style-type: none;
+      padding-left: 0;
+    }
+  
+    .list-group-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .list-group-item .btn-group {
+        display: flex;
+        align-items: center;
+    }
+  
+    .list-group-item .btn {
+      font-size: 0.8rem;
+      margin-left: 5px
+    }
+  
+    #totalPrice {
+      font-size: 1.2rem;
+    }
+  </style>
+  
+</head>
+
+<body>
+  <div class="container mt-5">
+    <form>
+      <div class="form-group">
+        <label for="NameInput">Selling Item</label>
+        <input type="text" class="form-control" id="NameInput" placeholder="Enter Item">
+      </div>
+      <div class="form-group">
+        <label for="EmailInput">Selling Price</label>
+        <input type="number" class="form-control" id="EmailInput" placeholder="Enter Price">
+      </div>
+      <div class="form-group">
+        <label for="contactInput">Quantity</label>
+          <input type="text" class="form-control" id="contactInput" placeholder="Enter Quantity">
+      </div>
+      <button type="button" id="submitbtn" class="btn btn-primary">Submit</button>
+    </form>
+    <hr>
+    <ul id="items" class="list-group"></ul>
+    <p id="totalPrice" class="mt-3 font-weight-bold">Total Price: 0 rupees</p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.4/axios.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    const crudurl = "https://crudcrud.com/api/d25d9a799bbc4ecebd172c9c82fc22ea";
+    let list = document.getElementById('items');
+
+    showData();
+
+    function createListItem(name, number, text) {
+      let li = document.createElement('li');
+      li.className = "list-group-item d-flex justify-content-between align=items-right";
+      
+      let deletebtn = document.createElement('button');
+      deletebtn.innerHTML = 'Delete';
+      deletebtn.className = 'btn btn-danger Delete mr-2';
+
+      let editbtn = document.createElement('button');
+      editbtn.innerHTML = "Edit";
+      editbtn.className = "btn btn-primary Edit";
+
+      const price = parseFloat(number);
+      const quantity = parseFloat(text);
+
+      const totalPrice = isNaN(price) || isNaN(quantity) ? 0 : price * quantity;
+
+      li.innerHTML = `${name} - ${number} rupees - ${text} KG`;
+      li.appendChild(deletebtn);
+      li.appendChild(editbtn);
+
+      return li;
+    }
+
+    function calculateTotalPrice() {
+      let totalPrice = 0;
+      const items = document.querySelectorAll('.list-group-item');
+      items.forEach(item => {
+        const itemInfo = item.innerText.split(' - ');
+        const price = parseFloat(itemInfo[1]);
+        const quantity = parseFloat(itemInfo[2]);
+        if (!isNaN(price) && !isNaN(quantity)) {
+          totalPrice += price * quantity;
+        }
+      });
+      return totalPrice;
+    }
+
+    function updateTotalPrice() {
+      const totalPrice = calculateTotalPrice();
+      const totalElement = document.getElementById('totalPrice');
+      totalElement.innerText = `Total Price: ${totalPrice} rupees`;
+    }
+
+    async function showData() {
+    try {
+      const response = await axios.get(crudurl + "/appointmentData");
+      
+      for (let i = 0; i < response.data.length; i++) {
+        
+        list.appendChild(createListItem(response.data[i].name, response.data[i].number, response.data[i].text));
+      }
+      updateTotalPrice();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+    let btn = document.getElementById('submitbtn');
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      let obj = {
+        name: '',
+        number: '',
+        text: ''
+      };
+      obj.name = document.getElementById('NameInput').value;
+      obj.number = document.getElementById('EmailInput').value;
+      obj.text = document.getElementById('contactInput').value;
+
+    
+
+      try {
+        const response = await axios.post(crudurl + "/appointmentData", obj);
+        list.appendChild(createListItem(response.data.name, response.data.number, response.data.text));
+        updateTotalPrice();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    list.addEventListener('click', async e => {
+    if (e.target.classList.contains('Delete')) {
+      let li = e.target.parentElement;
+      let text = li.innerHTML;
+      let item = text.split(" -");
+      try {
+        const res = await axios.get(crudurl + "/appointmentData");
+        for (let i = 0; i < res.data.length; i++) {
+          if (res.data[i].name === item[0]) {
+            await axios.delete(crudurl + "/appointmentData/" + res.data[i]._id);
+            list.removeChild(li);
+            updateTotalPrice();
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+      list.removeChild(li);
+    }
+  });
+
+  list.addEventListener('click', async e => {
+    if (e.target.classList.contains('Edit')) {
+      let li = e.target.parentElement;
+      let text = li.innerHTML;
+      let item = text.split(" -");
+      try {
+        const res = await axios.get(crudurl + "/appointmentData");
+        for (let i = 0; i < res.data.length; i++) {
+          if (res.data[i].name === item[0]) {
+            document.getElementById('NameInput').value = res.data[i].name;
+            document.getElementById('EmailInput').value = res.data[i].number;
+            document.getElementById('contactInput').value = res.data[i].text;
+            await axios.delete(crudurl + res.data[i]._id);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+      list.removeChild(li);
+    }
+  });
+
+  </script>
+  </body>
+  </html>

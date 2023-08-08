@@ -1,13 +1,13 @@
 
-const crudurl = "https://crudcrud.com/api/4efa3ac25da34c038879fc21c47626c8";
+
 
 let list = document.getElementById('items');
 
 showData();
 
 function createListItem(name, email, number) {
-  
   let li = document.createElement('li');
+  
   let deletebtn = document.createElement('button');
   deletebtn.innerHTML = 'Delete';
   deletebtn.className = 'danger-btn Delete';
@@ -24,7 +24,7 @@ function createListItem(name, email, number) {
 }
 
 function showData() {
-    axios.get(crudurl + "/appointmentData")
+    axios.get("https://crudcrud.com/api/36bb3a88a1dc4275a351ed218a8b371e/appointmentData")
       .then((response) => {
         for (let i = 0; i < response.data.length; i++) {
           list.appendChild(createListItem(response.data[i].name, response.data[i].email, response.data[i].number));
@@ -44,8 +44,7 @@ btn.addEventListener('click', (e) => {
       obj.name = document.getElementById('NameInput').value;
       obj.email = document.getElementById('EmailInput').value;
       obj.number = document.getElementById('contactInput').value;
-      
-      axios.post(crudurl + "/appointmentData", obj)
+      axios.post("https://crudcrud.com/api/36bb3a88a1dc4275a351ed218a8b371e/appointmentData", obj)
         .then(response => {
           list.appendChild(createListItem(response.data.name, response.data.email, response.data.number));
         })
@@ -58,35 +57,14 @@ list.addEventListener('click', e => {
     let li = e.target.parentElement;
     let text = li.innerHTML;
     let item = text.split(" -");
-    axios.get(crudurl + "/appointmentData")
+    axios.get("https://crudcrud.com/api/36bb3a88a1dc4275a351ed218a8b371e/appointmentData")
       .then(res => {
         for (let i = 0; i < res.data.length; i++) {
           if (res.data[i].name === item[0]) {
-            axios.delete(crudurl + "/appointmentData/" + res.data[i]._id)
+            axios.delete("https://crudcrud.com/api/36bb3a88a1dc4275a351ed218a8b371e/appointmentData" + res.data[i]._id)
           }
         }
       })
     list.removeChild(li);
   }
 })
-
-list.addEventListener('click',e => {
-    if (e.target.classList.contains('Edit')) {
-      let li = e.target.parentElement;
-      let text = li.innerHTML;
-      let item = text.split(" -");
-      axios.get(crudurl + "/appointmentData")
-        .then(res => {
-          for (let i = 0; i < res.data.length; i++) {
-            if (res.data[i].name === item[0]) {
-              document.getElementById('NameInput').value = res.data[i].name;
-              document.getElementById('EmailInput').value = res.data[i].email;
-              document.getElementById('contactInput').value = res.data[i].number;
-              axios.delete(url + res.data[i]._id);
-  
-            }
-          }
-        })
-      list.removeChild(li);
-    }
-  })

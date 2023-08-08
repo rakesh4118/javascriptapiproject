@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang ="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Inventory</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+  
+</head>
+
+
+
+<body>
+    <h1 style="text-align: center; font-weight: bold;">KGS General Store</h1>
+    <div class="container mt-5">
+        <form>
+            <div class="form-row">
+                <div class="form-group col-md-2">
+                    <label for="ItemInput">Item Name</label>
+                    <input type="text" class="form-control" id="a" placeholder="Name">
+                </div>
+
+                <div class="form-group col-md-2">
+                    <label for="DescInput">Description</label>
+                    <input type="text" class="form-control" id="b" placeholder="Desc">
+                </div>
+
+                <div class="form-group col-md-2">
+                    <label for="PriceInput">Price</label>
+                    <input type="number" class="form-control" id="c" placeholder="Cost">
+                </div>
+
+                <div class="form-group col-md-2">
+                    <label for="QuantityInput">Quantity</label>
+                    <input type="number" class="form-control" id="d" placeholder="Net">
+                </div>
+
+                <div class="form-group col-md-2 d-flex align-items-end">
+                    <button type="button" id = "submitbtn" class="btn btn-primary btn-block">Add Item</button>
+            </div>
+    </div>
+        </form>
+
+        <hr>
+        <h3>Overview</h3>
+        <ul id="items" class="list-group"></ul>
+    </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    const crudurl = "https://crudcrud.com/api/35eb03aa5da2489783232ab43cacbb5c";
+    let list = document.getElementById("items");
+
+    showData();
+
+    function updateQuantity(itemId,newQuantity){
+        axios.put(crudurl + "/store/" + itemId, {net: newQuantity })
+            .then((response) => {
+                while(list.firstChild){
+                    list.removeChild(list.firstChild);
+                }
+                showData();
+            })
+            .catch((error) => console.log(error));
+    }
+
+
+    function createListItem(name, desc, rate, net,itemId) {
+        let li = document.createElement('li');
+        li.className = "list-group-item d-flex justify-content-between align=items-right";
+
+        let buy1 = document.createElement('button');
+        buy1.innerHTML = 'Buy One';
+        buy1.className = "btn btn-success BuyOne";
+
+        let buy2 = document.createElement('button');
+        buy2.innerHTML = 'Buy Two';
+        buy2.className = "btn btn-success BuyTwo";
+
+        let buy3 = document.createElement('button');
+        buy3.innerHTML = 'Buy Three';
+        buy3.className = "btn btn-success BuyThree";
+        
+        li.innerHTML = `<b>${name}</b>  -  <b>${desc}</b>  -  <b>${rate}</b>  -  <b>${net}</b>`;
+
+
+        li.appendChild(buy1)
+        li.appendChild(buy2)
+        li.appendChild(buy3)
+
+
+        return li;
+    }
+
+
+
+    function showData() {
+      axios.get(crudurl + "/store")
+        .then((response) => {
+            for (let i = 0; i < response.data.length; i++) {
+                list.appendChild(createListItem(response.data[i].name, response.data[i].desc,response.data[i].rate,response.data[i].net));
+            }
+        })
+        .catch((error) => console.log(error));
+    }
+
+    function clearInputFields() {
+    document.getElementById('a').value = ''; // Clear the 'Item Name' field
+    document.getElementById('b').value = ''; // Clear the 'Description' field
+    document.getElementById('c').value = ''; // Clear the 'Price' field
+    document.getElementById('d').value = ''; // Clear the 'Quantity' field
+  }
+
+
+
+    let btn = document.getElementById('submitbtn');
+    btn.addEventListener('click', (e) => {
+        
+        let obj = {
+            name: '',
+            desc: '',
+            rate:'',
+            net:'',
+        };
+        obj.name = document.getElementById('a').value;
+        obj.desc = document.getElementById('b').value;
+        obj.rate = document.getElementById('c').value;
+        obj.net = document.getElementById('d').value;
+
+        axios.post(crudurl + "/store", obj)
+            .then(response => {
+            let remainingList = document.getElementById('items');
+            remainingList.appendChild(createListItem(response.data.name, response.data.desc,response.data.rate,response.data.net));
+            clearInputFields()
+   
+        })
+        .catch((error) => console.log(error));
+    });
+
+
+    list.addEventListener('click', e => {
+        if (e.target.classList.contains('BuyOne')) {
+            let listItem = e.target.parentElement;
+            let itemName = listItem.getElementsByTagName('b')[0].innerText;
+            let itemNetElement = listItem.getElementsByTagName('b')[3];
+            let currentNet = parseInt(itemNetElement.innerText);
+
+            if (currentNet > 0) {
+               
+                itemNetElement.innerText = currentNet - 1;
+                let itemId = getItemIdByName(itemName);
+                let newQuantity = currentNet - 1;
+                updateQuantity(itemId, newQuantity);
+            }
+        }
+    });
+
+    
+    list.addEventListener('click', e => {
+        if (e.target.classList.contains('BuyTwo')) {
+            let listItem = e.target.parentElement;
+            let itemName = listItem.getElementsByTagName('b')[0].innerText;
+            let itemNetElement = listItem.getElementsByTagName('b')[3];
+            let currentNet = parseInt(itemNetElement.innerText);
+
+            if (currentNet > 0) {
+               
+                itemNetElement.innerText = currentNet - 2;
+                let itemId = getItemIdByName(itemName);
+                let newQuantity = currentNet - 2;
+                updateQuantity(itemId, newQuantity);
+            }
+        }
+    });
+
+
+    
+    list.addEventListener('click', e => {
+        if (e.target.classList.contains('BuyThree')) {
+            let listItem = e.target.parentElement;
+            let itemName = listItem.getElementsByTagName('b')[0].innerText;
+            let itemNetElement = listItem.getElementsByTagName('b')[3];
+            let currentNet = parseInt(itemNetElement.innerText);
+
+            if (currentNet > 0) {
+               
+                itemNetElement.innerText = currentNet - 3;
+                let itemId = getItemIdByName(itemName);
+                let newQuantity = currentNet - 3;
+                updateQuantity(itemId, newQuantity);
+            }
+        }
+    });
+
+ 
+    function getItemIdByName(itemName) {
+        let items = list.getElementsByTagName('li');
+        for (let i = 0; i < items.length; i++) {
+            let nameElement = items[i].getElementsByTagName('b')[0];
+            if (nameElement.innerText === itemName) {
+                return items[i].getAttribute('id');
+            }
+        }
+        return null;
+    }
+      
+  </script>
+</body>
+
+</html>

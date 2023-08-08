@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang ="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO List</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+  
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+  
+    form {
+      margin-bottom: 20px;
+    }
+  
+    #submitbtn {
+      margin-top: 10px;
+    }
+  
+    ul#items {
+      list-style-type: none;
+      padding-left: 0;
+    }
+  
+    .list-group-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .list-group-item .btn-group {
+        display: flex;
+        align-items: center;
+    }
+  
+    .list-group-item .btn {
+      font-size: 0.8rem;
+      margin-left: 5px
+    }
+  
+    #totalPrice {
+      font-size: 1.2rem;
+    }
+  </style>
+  
+</head>
+
+
+
+<body>
+    <h1 style="text-align: center; font-weight: bold;">TODO List</h1>
+    <div class="container mt-5">
+        <form>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label for="NameInput">Todo Name</label>
+                    <input type="text" class="form-control" id="NameInput" placeholder="Todo">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="EmailInput">Description</label>
+                    <input type="text" class="form-control" id="EmailInput" placeholder="Desc">
+                </div>
+                <div class="form-group col-md-2 d-flex align-items-end">
+                    <button type="button" id = "submitbtn" class="btn btn-primary btn-block">Add Item</button>
+                </div>
+            </div>
+        </form>
+        <hr>
+        <ul id="items" class="list-group"></ul>
+    </div>
+    <ul id =" done-todos" class ="list-group"></ul>
+    
+
+
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.4/axios.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    const crudurl = "https://crudcrud.com/api/df285a18c1a24b21932ea223ab1a3d4a";
+    let list = document.getElementById('items');
+
+    showData();
+
+    function createListItem(name, number) {
+      let li = document.createElement('li');
+      li.className = "list-group-item d-flex justify-content-between align=items-right";
+
+      let okbtn = document.createElement('button');
+      okbtn.innerHTML = 'OK';
+      okbtn.className = "btn btn-success OK";
+
+      let notokbtn = document.createElement('button');
+      notokbtn.innerHTML = "NOT OK";
+      notokbtn.className = "btn btn-danger NOT OK mr-2";
+      
+      let deletebtn = document.createElement('button');
+      deletebtn.innerHTML = 'Delete';
+      deletebtn.className = 'btn btn-danger Delete mr-2';
+
+      let editbtn = document.createElement('button');
+      editbtn.innerHTML = "Edit";
+      editbtn.className = "btn btn-primary Edit";
+
+
+      li.innerHTML = `${name} - ${number}`;
+      li.appendChild(deletebtn);
+      li.appendChild(editbtn);
+      li.appendChild(okbtn);
+      li.appendChild(notokbtn);
+
+
+      return li;
+    }
+
+
+
+
+    function showData() {
+      axios.get(crudurl + "/appointmentData")
+        .then((response) => {
+          for (let i = 0; i < response.data.length; i++) {
+            list.appendChild(createListItem(response.data[i].name, response.data[i].number));
+          }
+        })
+        .catch((error) => console.log(error));
+    }
+
+    let btn = document.getElementById('submitbtn');
+    btn.addEventListener('click', (e) => {
+      let obj = {
+        name: '',
+        number: '',
+      };
+      obj.name = document.getElementById('NameInput').value;
+      obj.number = document.getElementById('EmailInput').value;
+
+      axios.post(crudurl + "/appointmentData", obj)
+        .then(response => {
+          list.appendChild(createListItem(response.data.name, response.data.number));
+        })
+        .catch((error) => console.log(error));
+    });
+
+
+    list.addEventListener('click', e => {
+      if (e.target.classList.contains('Delete')) {
+        let li = e.target.parentElement;
+        let text = li.innerHTML;
+        let item = text.split(" -");
+        axios.get(crudurl + "/appointmentData")
+          .then(res => {
+            for (let i = 0; i < res.data.length; i++) {
+              if (res.data[i].name === item[0]) {
+                axios.delete(crudurl + "/appointmentData/" + res.data[i]._id)
+                  .then(() => {
+                  })
+                  .catch((error) => console.log(error));
+              }
+            }
+          });
+        list.removeChild(li);
+      }
+    });
+
+    list.addEventListener('click', e => {
+      if (e.target.classList.contains('Edit')) {
+        let li = e.target.parentElement;
+        let text = li.innerHTML;
+        let item = text.split(" -");
+        axios.get(crudurl + "/appointmentData")
+          .then(res => {
+            for (let i = 0; i < res.data.length; i++) {
+              if (res.data[i].name === item[0]) {
+                document.getElementById('NameInput').value = res.data[i].name;
+                document.getElementById('EmailInput').value = res.data[i].number;
+        
+                axios.delete(crudurl + res.data[i]._id);
+              }
+            }
+          });
+        list.removeChild(li);
+      }
+    });
+
+
+  </script>
+</body>
+
+</html>

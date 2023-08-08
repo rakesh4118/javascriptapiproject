@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To_Do_List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <script src="main.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+    <style>
+      .add{
+        margin-top: 10px;
+        
+      }
+      .remaining, .completed {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #eee;
+      }
+      .pending li, .finished li {
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #f2f2f2;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="text-center">To Do List</h1>
+        <form action="" class="form form-inline" id="form">
+            To Do Item: <input type="text" class="item form-control" id="item">
+            To do Description: <input type="text" class="description form-control" id="description">
+            <button class="add btn btn-primary" id="add">Add Item</button>
+        </form>
+    </div>
+    <div class="remaining">
+        <h3 class="text-center">Pending To Do List</h3>
+    </div>
+    <ul class="pending list-group" id="pending">
+
+    </ul>
+
+    <div class="completed">
+        <h3 class="text-center">Completed To Do  List</h3>
+    </div>
+    <ul class="finished list-group" id="finished">
+
+    </ul>
+
+    <script>
+        const form = document.getElementById('form')
+const pending_ul = document.getElementById('pending')
+const completed_ul = document.getElementById('finished')
+const URL = "https://crudcrud.com/api/a5c587cc630747b99d732463ae4bd98a/Register"
+
+function add_item() {
+    const todo_item = document.getElementById('item').value
+    const todo_description = document.getElementById('description').value
+
+    const config = {
+        method: "POST",
+        url: URL,
+        data: {
+            Item: todo_item,
+            Description: todo_description,
+            Status: "Pending"
+        },
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }
+    axios(config)
+        .then((res) => {
+
+            pending_ul.innerHTML += `<li id="${res.data._id}"><span>${todo_item}--${todo_description}</span> <button class="btn btn-warning green" id="green">Completed</button> <button class="red btn btn-danger" id="red">Cancel</button></li>`
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+}
+
+form.addEventListener('submit', (e) => {
+    e.preventDefault()
+    add_item()
+    form.reset()
+})
+pending_ul.addEventListener('click', (e) => {
+    const todo_id = e.target.parentNode.getAttribute('id')
+    if (e.target.classList.contains('green')) {
+
+        const todo_id = e.target.parentNode.getAttribute('id')
+        const todo_item = e.target.parentNode.querySelector('span').textContent.split('--')[0]
+        const todo_description = e.target.parentNode.querySelector('span').textContent.split('--')[1]
+
+        axios.put(`${URL}/${todo_id}`, {
+            Status: "Completed",
+            Item: todo_item,
+            Description: todo_description
+        }
+            // headers : {
+            //     'Content-Type': 'application/json'
+            // }
+        )
+            .then((res) => {
+                completed_ul.innerHTML += `<li id="${todo_id}"><span>${e.target.parentNode.querySelector('span').textContent}</span>  <button class="green btn btn-success" id="green">Completed</button> <button class="red btn btn-danger" id="red">Cancel</button></li>`
+                e.target.parentNode.remove()
+
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+    if (e.target.classList.contains('red')) {
+        e.target.parentNode.remove()
+
+        axios.delete(`${URL}/${todo_id}`)
+            .then((res) => {
+                console.log(res);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+})
+
+window.addEventListener("DOMContentLoaded", (e) => {
+    axios.get(URL)
+        .then((response) => {
+            for (let i = 0; i < response.data.length; i++) {
+                if (response.data[i].Status === "Pending") {
+                    pending_ul.innerHTML += `<li id="${response.data[i]._id}"><span>${response.data[i].Item}-- ${response.data[i].Description}</span> <button class="green btn btn-warning" id="green ">Completed</button> <button class="red btn btn-danger" id="red ">Cancel</button></li>`
+                } else {
+                    completed_ul.innerHTML += `<li id="${response.data[i]._id}"><span>${response.data[i].Item}-- ${response.data[i].Description}</span>  <button class="green btn btn-success" id="green ">Completed</button> <button class="red btn btn-danger" id="red ">Cancel</button></li>`
+
+                }
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+})
+completed_ul.addEventListener('click', (e) => {
+    const todo_id = e.target.parentNode.getAttribute('id')
+
+    if (e.target.classList.contains('red')) {
+        e.target.parentNode.remove()
+        axios.delete(`${URL}/${todo_id}`)
+            .then((res) => {
+                console.log(res);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+})
+    </script>
+</body>
+
+</html>

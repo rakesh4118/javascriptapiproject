@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang ="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Inventory</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #007bff;
+        }
+
+        ul.list-group li {
+            margin-bottom: 10px;
+            background-color: #ffffff;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+        
+        }
+
+        @keyframes pulse {
+        0% {
+            background-color: #28a745;
+        }
+        50% {
+            background-color: #40bf40;
+        }
+        100% {
+            background-color: #28a745;
+        }
+    }
+
+        .btn-buy-one:not([disabled]) {
+            animation: pulse 1s infinite;
+            color:black;
+            font-weight:bold;
+    }
+
+        .btn-buy-two:not([disabled]) {
+            animation: pulse 1s infinite;
+            color:black;
+            font-weight:bold;
+    }
+
+        .btn-buy-three:not([disabled]){
+            animation: pulse 1s infinite;
+            color:black;
+            font-weight:bold;
+    }
+
+
+    </style>
+  
+</head>
+
+
+
+<body>
+    <h1 style="text-align: center; font-weight: bold;">KGS General Store</h1>
+    <div class="container mt-5">
+        <form>
+            <div class="form-row">
+                <div class="form-group col-md-2">
+                    <label for="ItemInput">Item Name</label>
+                    <input type="text" class="form-control" id="a" placeholder="Name">
+                </div>
+
+                <div class="form-group col-md-2">
+                    <label for="DescInput">Description</label>
+                    <input type="text" class="form-control" id="b" placeholder="Desc">
+                </div>
+
+                <div class="form-group col-md-2">
+                    <label for="PriceInput">Price</label>
+                    <input type="number" class="form-control" id="c" placeholder="Cost">
+                </div>
+
+                <div class="form-group col-md-2">
+                    <label for="QuantityInput">Quantity</label>
+                    <input type="number" class="form-control" id="d" placeholder="Net">
+                </div>
+
+                <div class="form-group col-md-2 d-flex align-items-end">
+                    <button type="button" id = "submitbtn" class="btn btn-primary btn-block">Add Item
+                        
+                    </button>
+            </div>
+    </div>
+        </form>
+
+        <hr>
+        <h3>Overview</h3>
+        <ul id="items" class="list-group"></ul>
+    </div>
+
+
+
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    const crudurl = "https://crudcrud.com/api/57cc4ff65bcd4056a86d6e11c13e26d0";
+    let list = document.getElementById("items");
+
+    showData();
+
+    function updateQuantity(itemId,newQuantity){
+        axios.put(crudurl + "/store/" + itemId, newQuantity)
+            .then((response) => {
+                while(list.firstChild){
+                    list.removeChild(list.firstChild);
+                }
+                showData();
+            })
+            .catch((error) => console.log(error));
+    }
+
+
+    function createListItem(name, desc, rate, net,itemId) {
+        let li = document.createElement('li');
+        li.className = "list-group-item d-flex justify-content-between align=items-right";
+
+        let buy1 = document.createElement('button');
+        buy1.innerHTML = 'Buy One';
+        buy1.className = "btn btn-success btn-buy-one";
+
+        let buy2 = document.createElement('button');
+        buy2.innerHTML = 'Buy Two';
+        buy2.className = "btn btn-success btn-buy-two";
+
+        let buy3 = document.createElement('button');
+        buy3.innerHTML = 'Buy Three';
+        buy3.className = "btn btn-success btn-buy-three";
+        
+        li.innerHTML = `<b>${name}</b>  -  <b>${desc}</b>  -  <b>${rate} Rs/piece</b>  -  <b>${net} qty</b>`;
+
+        if (net <= 0) {
+            let outOfStockMessage = document.createElement('span');
+            outOfStockMessage.innerText = "Out of Stock";
+            outOfStockMessage.className = "badge badge-danger ml-2";
+            li.appendChild(outOfStockMessage);
+
+            // Disable the buttons
+            buy1.disabled = true;
+            buy2.disabled = true;
+            buy3.disabled = true;
+        
+        }else if (net < 10) {
+            let lowStockMessage = document.createElement('span');
+            lowStockMessage.innerText = "Low Stock";
+            lowStockMessage.className = "badge badge-warning ml-2";
+            li.appendChild(lowStockMessage);
+        }
+
+        buy1.addEventListener('click', () => {
+            const updatedItem = {
+                name:name,
+                desc:desc,
+                rate:rate,
+                net:net - 1
+            };
+            updateQuantity(itemId, updatedItem);
+        });
+
+        buy2.addEventListener('click', () => {
+            const updatedItem = {
+                name:name,
+                desc:desc,
+                rate:rate,
+                net:net - 2
+            };
+
+            updateQuantity(itemId, updatedItem);
+        });
+
+        buy3.addEventListener('click', () => {
+            const updatedItem = {
+                name:name,
+                desc:desc,
+                rate:rate,
+                net:net - 3
+            };
+    
+            updateQuantity(itemId, updatedItem);
+        });
+
+        li.appendChild(buy1)
+        li.appendChild(buy2)
+        li.appendChild(buy3)
+
+
+        return li;
+    }
+
+
+
+    function showData() {
+      axios.get(crudurl + "/store")
+        .then((response) => {
+            for (let i = 0; i < response.data.length; i++) {
+                list.appendChild(createListItem(response.data[i].name, response.data[i].desc,response.data[i].rate,response.data[i].net,response.data[i]._id));
+            }
+        })
+        .catch((error) => console.log(error));
+    }
+
+
+    let btn = document.getElementById('submitbtn');
+    btn.addEventListener('click', (e) => {
+        
+        let obj = {
+            name: '',
+            desc: '',
+            rate:'',
+            net:'',
+        };
+        obj.name = document.getElementById('a').value;
+        obj.desc = document.getElementById('b').value;
+        obj.rate = document.getElementById('c').value;
+        obj.net = document.getElementById('d').value;
+
+        axios.post(crudurl + "/store", obj)
+            .then(response => {
+            let remainingList = document.getElementById('items');
+            remainingList.appendChild(createListItem(response.data.name, response.data.desc,response.data.rate,response.data.net,response.data._id));
+   
+        })
+        .catch((error) => console.log(error));
+    });
+      
+  </script>
+</body>
+
+</html>

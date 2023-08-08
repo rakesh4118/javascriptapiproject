@@ -1,0 +1,56 @@
+<form onsubmit = "saveToLocal(event)">
+  
+    
+    <label>Name</label>
+    <input type="text" placeholder="Enter Username" name="username" required>
+
+    <label>Email</label>
+    <input type ="email" placeholder="Enter email" name="emailid" required>
+
+    <label>Phone Number</label>
+    <input type="tel" placeholder="Enter phonenumber" name="phonenumber" required>
+
+    <button>Submit</button>
+</form>
+<ul id="listOfitems">
+
+<script>
+  function saveToLocal(event){
+      event.preventDefault();
+      var name = event.target.username.value;
+      var email = event.target.emailid.value;
+      var phonenumber = event.target.phonenumber.value;
+
+      var user = {
+          name,
+          email,
+          phonenumber
+      }
+      localStorage.setItem(user.email,JSON.stringify(user))
+      showUser(user)
+  }
+  function showUser(user){
+      var parentElement = document.getElementById("listOfitems")
+      var childElement = document.createElement("li")
+      childElement.textContent = user.name + " - " + user.email + " - " + user.phonenumber
+      
+
+      var deleteBtn = document.createElement("input");
+      deleteBtn.type = "button"
+      deleteBtn.value = "Delete"
+      deleteBtn.onclick = () => {
+        localStorage.removeItem(user.email)
+        parentElement.removeChild(childElement)
+      }
+
+      var editBtn = document.createElement("input");
+      editBtn.type = "button"
+      editBtn.value = "Edit"
+      editBtn.onclick = () => {
+    
+      }
+      childElement.appendChild(editBtn)
+      childElement.appendChild(deleteBtn)
+      parentElement.appendChild(childElement)
+  }
+</script>
